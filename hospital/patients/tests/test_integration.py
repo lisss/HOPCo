@@ -1,4 +1,5 @@
 import pytest
+import uuid
 from django.urls import reverse
 from django.utils import timezone
 from datetime import timedelta
@@ -10,19 +11,18 @@ from ..models import Patient, Procedure
 class TestPatientIntegration:
     def test_create_patient(self, api_client):
         url = reverse("patient-list")
+        email = f"jane.doe.{uuid.uuid4().hex[:8]}@example.com"
         data = {
             "name": "Jane Doe",
-            "email": "jane@example.com",
+            "email": email,
             "gender": "F",
             "date_of_birth": "1985-05-15",
         }
         response = api_client.post(url, data)
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["name"] == "Jane Doe"
-        assert response.data["email"] == "jane@example.com"
+        assert response.data["email"] == email
         assert "id" in response.data
-
-        Patient.objects.get(id=response.data["id"]).delete()
 
     def test_retrieve_patient(self, api_client, patient):
         url = reverse("patient-list")
@@ -48,25 +48,27 @@ class TestPatientIntegration:
         patient_id = search_response.data["results"][0]["id"]
 
         url = reverse("patient-detail", kwargs={"pk": patient_id})
+        email = f"jennifer.wilson.{uuid.uuid4().hex[:8]}@example.com"
         data = {
             "name": "Jennifer Wilson",
-            "email": "jennifer.wilson@example.com",
+            "email": email,
             "gender": "F",
             "date_of_birth": "1990-01-01",
         }
         response = api_client.put(url, data)
         assert response.status_code == status.HTTP_200_OK
         assert response.data["name"] == "Jennifer Wilson"
-        assert response.data["email"] == "jennifer.wilson@example.com"
+        assert response.data["email"] == email
 
         patient.refresh_from_db()
         assert patient.name == "Jennifer Wilson"
-        assert patient.email == "jennifer.wilson@example.com"
+        assert patient.email == email
 
     def test_delete_patient(self, api_client):
+        email = f"christopher.lee.{uuid.uuid4().hex[:8]}@example.com"
         patient = Patient.objects.create(
             name="Christopher Lee",
-            email="christopher.lee@example.com",
+            email=email,
             gender="M",
             date_of_birth="1990-01-01",
         )
@@ -110,8 +112,6 @@ class TestPatientIntegration:
         assert procedure.patient == patient
         assert procedure.clinician == clinician
 
-        procedure.delete()
-
     def patients_by_procedure(self, api_client, patient, clinician):
         procedure = Procedure.objects.create(
             name="Heart Surgery",
@@ -124,8 +124,6 @@ class TestPatientIntegration:
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data) >= 1
         assert response.data[0]["patient_name"] == "John Doe"
-
-        procedure.delete()
 
     def patient_count_by_department(self, api_client, department, clinician, patient):
         patient.clinicians.add(clinician)

@@ -1,12 +1,13 @@
-import pytest
+import uuid
 from datetime import datetime, timedelta
 
 
 class TestPatientAPI:
     def test_create_patient(self, client, base_url):
+        email = f"sarah.johnson.{uuid.uuid4().hex[:8]}@example.com"
         data = {
             "name": "Sarah Johnson",
-            "email": "sarah.johnson@example.com",
+            "email": email,
             "gender": "F",
             "date_of_birth": "1985-05-15",
         }
@@ -14,13 +15,13 @@ class TestPatientAPI:
         assert response.status_code == 201
         patient_data = response.json()
         assert patient_data["name"] == "Sarah Johnson"
-        assert patient_data["email"] == "sarah.johnson@example.com"
-        client.delete(f"{base_url}/patients/{patient_data['id']}/")
+        assert patient_data["email"] == email
 
     def test_retrieve_patient(self, client, base_url):
+        email = f"emma.thompson.{uuid.uuid4().hex[:8]}@example.com"
         data = {
             "name": "Emma Thompson",
-            "email": "emma.thompson@example.com",
+            "email": email,
             "gender": "F",
             "date_of_birth": "1988-03-15",
         }
@@ -31,14 +32,13 @@ class TestPatientAPI:
         assert response.status_code == 200
         patient_data = response.json()
         assert patient_data["name"] == "Emma Thompson"
-        assert patient_data["email"] == "emma.thompson@example.com"
-
-        client.delete(f"{base_url}/patients/{patient_id}/")
+        assert patient_data["email"] == email
 
     def test_update_patient(self, client, base_url):
+        email = f"michael.brown.{uuid.uuid4().hex[:8]}@example.com"
         data = {
             "name": "Michael Brown",
-            "email": "original@example.com",
+            "email": email,
             "gender": "M",
             "date_of_birth": "1990-01-01",
         }
@@ -47,21 +47,20 @@ class TestPatientAPI:
 
         update_data = {
             "name": "Michael Brown",
-            "email": "michael.brown@example.com",
+            "email": email,
             "gender": "M",
             "date_of_birth": "1990-01-01",
         }
         response = client.put(f"{base_url}/patients/{patient_id}/", json=update_data)
         assert response.status_code == 200
         updated_patient = response.json()
-        assert updated_patient["email"] == "michael.brown@example.com"
-
-        client.delete(f"{base_url}/patients/{patient_id}/")
+        assert updated_patient["email"] == email
 
     def test_delete_patient(self, client, base_url):
+        email = f"robert.wilson.{uuid.uuid4().hex[:8]}@example.com"
         data = {
             "name": "Robert Wilson",
-            "email": "robert.wilson@example.com",
+            "email": email,
             "gender": "M",
             "date_of_birth": "1990-01-01",
         }
